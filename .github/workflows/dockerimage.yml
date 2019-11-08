@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on: [push]
+
+jobs:
+  build_and_push:
+    strategy:
+      matrix:
+        java_version: [8]
+        scala_version: [2.12.6,2.13.1]
+        sbt_version: [1.1.6, 1.3.2]
+        coursier_version: [1.0.3,2.0.0-RC3-3]
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: sparetimecoders
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      DOCKERHUB_NAMESPACE: sparetimecoders
+      DOCKER_TAG: ${{ matrix.scala_version }}-${{ matrix.sbt_version }}
+    name: Build and push
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: Build
+      uses: buildtool/actions/build@master
+      with:
+        additional-docker-args: --build-arg SCALA_VERSION=${{ matrix.scala_version }} --build-arg JDK_VERSION=${{ matrix.java_version }} --build-arg COURSIER_VERSION=${{ matrix.coursier_version }} --build-arg SBT_VERSION=${{ matrix.sbt_version }}
+    - name: Push
+      uses: buildtool/actions/push@master
